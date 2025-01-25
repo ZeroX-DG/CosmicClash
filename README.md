@@ -11,3 +11,17 @@ Command format:
 
 { action: 'rotate', angle: number }
 ```
+
+Game state format:
+
+```
+{
+    ships: [
+        {
+            name: string;
+            location: [number, number],
+            health: number,
+        }
+    ]
+}
+```

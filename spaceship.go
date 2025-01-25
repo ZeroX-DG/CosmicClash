@@ -39,10 +39,10 @@ func newShip() *Spaceship {
 	return &Spaceship{}
 }
 
-func (c StopCommand) Execute() {
+func (c *StopCommand) Execute() {
 	c.Spaceship.IsMovingForward = false
 }
 
-func (c ForwardCommand) Execute() {
+func (c *ForwardCommand) Execute() {
 	c.Spaceship.IsMovingForward = true
 }
