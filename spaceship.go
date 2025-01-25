@@ -40,11 +40,11 @@ type ReigsterShipCommand struct {
 	Name string `json:"name"`
 }
 
-func newShip(name string) *Spaceship {
+func newShip(name string, initialPosition [2]float64) *Spaceship {
 	return &Spaceship{
 		Name:            name,
 		Health:          100,
-		Position:        [2]float64{0, 0},
+		Position:        initialPosition,
 		IsDestroyed:     false,
 		IsMovingForward: false,
 	}

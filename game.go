@@ -3,12 +3,15 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"math/rand"
 )
 
 type Game struct {
 	hub *Hub
 
 	ships map[*Client]*Spaceship
+
+	size [2]uint // width x height
 
 	messageQueue chan struct {
 		client  *Client
@@ -20,6 +23,7 @@ func newGame(hub *Hub) *Game {
 	return &Game{
 		hub:   hub,
 		ships: make(map[*Client]*Spaceship),
+		size:  [2]uint{800, 800},
 		messageQueue: make(chan struct {
 			client  *Client
 			message []byte
@@ -48,8 +52,10 @@ func (g *Game) toJSON() []byte {
 
 	b, err := json.Marshal(&struct {
 		Ships []*Spaceship `json:"ships"`
+		Size  [2]uint      `json:"size"`
 	}{
 		Ships: ships,
+		Size:  g.size,
 	})
 
 	if err != nil {
@@ -75,7 +81,7 @@ func (g *Game) processMessage(client *Client, message []byte) {
 			return
 		}
 
-		g.ships[client] = newShip(registerCommand.Name)
+		g.ships[client] = newShip(registerCommand.Name, g.chooseRandomPosition())
 
 		// if register ship success then you should receive the game state
 		g.hub.broadcast <- g.toJSON()
@@ -86,6 +92,13 @@ func (g *Game) processMessage(client *Client, message []byte) {
 	command.Execute()
 	// let everyone know the game state has changed
 	g.hub.broadcast <- g.toJSON()
+}
+
+func (g *Game) chooseRandomPosition() [2]float64 {
+	return [2]float64{
+		float64(rand.Intn(int(g.size[0]))),
+		float64(rand.Intn(int(g.size[1]))),
+	}
 }
 
 func makeJSONError(err string) []byte {
