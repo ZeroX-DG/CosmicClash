@@ -1,6 +1,8 @@
 package main
 
 type Game struct {
+	hub *Hub
+
 	ships map[*Client]*Spaceship
 
 	messageQueue chan struct {
@@ -9,8 +11,9 @@ type Game struct {
 	}
 }
 
-func newGame() *Game {
+func newGame(hub *Hub) *Game {
 	return &Game{
+		hub:   hub,
 		ships: make(map[*Client]*Spaceship),
 		messageQueue: make(chan struct {
 			client  *Client
@@ -24,8 +27,15 @@ func (g *Game) run() {
 		select {
 		case message := <-g.messageQueue:
 			g.processMessage(message.client, message.message)
+			// let everyone know the game state
+			g.hub.broadcast <- []byte(g.toJSON())
 		}
 	}
+}
+
+// Translate the current game state to JSON to boardcast to all players
+func (g *Game) toJSON() string {
+	return ""
 }
 
 func (g *Game) processMessage(client *Client, message string) {

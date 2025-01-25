@@ -26,7 +26,7 @@ func main() {
 	hub := newHub()
 	go hub.run()
 
-	game := newGame()
+	game := newGame(hub)
 	go game.run()
 
 	// http.HandleFunc("/", serveHome)
