@@ -35,8 +35,19 @@ type ShootCommand struct {
 	Spaceship *Spaceship
 }
 
-func newShip() *Spaceship {
-	return &Spaceship{}
+// RegisterShipCommand can be used to register a ship
+type ReigsterShipCommand struct {
+	Name string `json:"name"`
+}
+
+func newShip(name string) *Spaceship {
+	return &Spaceship{
+		Name:            name,
+		Health:          100,
+		Position:        [2]float64{0, 0},
+		IsDestroyed:     false,
+		IsMovingForward: false,
+	}
 }
 
 func (c *StopCommand) Execute() {

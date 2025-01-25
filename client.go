@@ -69,9 +69,9 @@ func (c *Client) readPump() {
 		message = bytes.TrimSpace(bytes.Replace(message, newline, space, -1))
 		c.game.messageQueue <- struct {
 			client  *Client
-			message string
+			message []byte
 		}{
-			c, string(message),
+			c, message,
 		}
 	}
 }

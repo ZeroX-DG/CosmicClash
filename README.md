@@ -3,6 +3,8 @@ Some ideas:
 Command format:
 
 ```
+{ action: 'registerShip', name: string }
+
 { action: 'forward' }
 
 { action: 'stop' }
@@ -10,6 +12,12 @@ Command format:
 { action: 'shoot' }
 
 { action: 'rotate', angle: number }
+```
+
+Error format:
+
+```
+{ error: string }
 ```
 
 Game state format:
