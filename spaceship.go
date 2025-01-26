@@ -1,12 +1,15 @@
 package main
 
+import "encoding/json"
+
 // Spaceship represents a spaceship and its properties.
 type Spaceship struct {
-	Name            string
-	Health          int
-	Position        [2]float64 // x, y coordinates
-	IsDestroyed     bool
-	IsMovingForward bool
+	Name            string     `json:"name"`
+	Health          int        `json:"health"`
+	Position        [2]float64 `json:"position"` // x, y coordinates
+	Angle           float64    `json:"angle"`
+	isDestroyed     bool
+	isMovingForward bool
 }
 
 // Command is the interface for all spaceship actions.
@@ -45,15 +48,21 @@ func newShip(name string, initialPosition [2]float64) *Spaceship {
 		Name:            name,
 		Health:          100,
 		Position:        initialPosition,
-		IsDestroyed:     false,
-		IsMovingForward: false,
+		Angle:           0,
+		isDestroyed:     false,
+		isMovingForward: false,
 	}
 }
 
+func (s *Spaceship) toJSON() []byte {
+	b, _ := json.Marshal(s)
+	return b
+}
+
 func (c *StopCommand) Execute() {
-	c.Spaceship.IsMovingForward = false
+	c.Spaceship.isMovingForward = false
 }
 
 func (c *ForwardCommand) Execute() {
-	c.Spaceship.IsMovingForward = true
+	c.Spaceship.isMovingForward = true
 }

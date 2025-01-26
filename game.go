@@ -81,17 +81,20 @@ func (g *Game) processMessage(client *Client, message []byte) {
 			return
 		}
 
-		g.ships[client] = newShip(registerCommand.Name, g.chooseRandomPosition())
+		ship = newShip(registerCommand.Name, g.chooseRandomPosition())
+		g.ships[client] = ship
 
-		// if register ship success then you should receive the game state
+		// if register ship success then you should receive the game state & your ship info
 		g.hub.broadcast <- g.toJSON()
+		client.send <- ship.toJSON()
 		return
 	}
 
 	command := parseCommand(ship, message)
 	command.Execute()
-	// let everyone know the game state has changed
+	// let everyone know the game state has changed with the ship info
 	g.hub.broadcast <- g.toJSON()
+	client.send <- ship.toJSON()
 }
 
 func (g *Game) chooseRandomPosition() [2]float64 {
