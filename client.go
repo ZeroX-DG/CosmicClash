@@ -52,6 +52,7 @@ type Client struct {
 // reads from this goroutine.
 func (c *Client) readPump() {
 	defer func() {
+		c.game.unregister <- c
 		c.hub.unregister <- c
 		c.conn.Close()
 	}()

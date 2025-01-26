@@ -2,7 +2,7 @@ package main
 
 import (
 	"encoding/json"
-	"fmt"
+	"log"
 	"math/rand"
 	"time"
 )
@@ -23,6 +23,8 @@ type Game struct {
 		client  *Client
 		message []byte
 	}
+
+	unregister chan *Client
 }
 
 func newGame(hub *Hub) *Game {
@@ -34,6 +36,7 @@ func newGame(hub *Hub) *Game {
 			client  *Client
 			message []byte
 		}),
+		unregister: make(chan *Client),
 	}
 }
 
@@ -47,8 +50,11 @@ func (g *Game) run() {
 		select {
 		case message := <-g.messageQueue:
 			g.processMessage(message.client, message.message)
-		case client := <-g.hub.unregister:
-			delete(g.ships, client)
+		case client := <-g.unregister:
+			if client != nil && g.ships[client] != nil {
+				log.Println("Unregistered Ship: " + g.ships[client].Name)
+				delete(g.ships, client)
+			}
 		case <-gameTicker.C:
 			g.update()
 		case <-broadcastTicker.C:
@@ -80,7 +86,7 @@ func (g *Game) toJSON() []byte {
 	})
 
 	if err != nil {
-		fmt.Println(err)
+		log.Println(err)
 	}
 
 	return b
@@ -108,7 +114,7 @@ func (g *Game) processMessage(client *Client, message []byte) {
 		// if register ship success then you should receive the game state & your ship info
 		g.hub.broadcast <- g.toJSON()
 		client.send <- ship.toJSON()
-		fmt.Println("New Ship: " + ship.Name)
+		log.Println("New Ship: " + ship.Name)
 		return
 	}
 

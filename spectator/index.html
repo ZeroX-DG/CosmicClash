@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CosmicClash</title>
+    <style>
+        html, body, #game {
+            width: 100%;
+            height: 100%;
+            padding: 0;
+            margin: 0;
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="game"></canvas>
+    <script>
+        const canvas = document.querySelector('#game');
+        const context = canvas.getContext('2d'); 
+
+        const socket = new WebSocket("ws://localhost:8080/ws");
+
+        let mapSize = [0, 0];
+        let ships = [];
+
+        socket.addEventListener("message", (event) => {
+            const data = JSON.parse(event.data);
+            const isGameState = Array.isArray(data.ships);
+
+            if (isGameState) {
+                mapSize = data.size;
+                ships = data.ships;
+            }
+
+            console.log(data);
+            render();
+        });
+
+        function render() {
+            // Reset canvas scale
+            context.canvas.width  = window.innerWidth;
+            context.canvas.height = window.innerHeight;
+
+            // Render background
+            context.fillStyle = 'black';
+            context.fillRect(0, 0, canvas.clientWidth, canvas.clientHeight);
+
+            // Render map borders
+            const borderX = (canvas.clientWidth - mapSize[0]) / 2;
+            const borderY = (canvas.clientHeight - mapSize[1]) / 2;
+            context.strokeStyle = 'white';
+            context.strokeRect(
+                borderX,
+                borderY,
+                mapSize[0],
+                mapSize[1]
+            );
+
+            context.translate(borderX, borderY);
+
+            // Render ships
+            for (const ship of ships) {
+                const triangle = new Path2D();
+                triangle.moveTo(ship.position[0] - 5, ship.position[1] + 5);
+                triangle.lineTo(ship.position[0], ship.position[1] - 10);
+                triangle.lineTo(ship.position[0] + 5, ship.position[1] + 5);
+                triangle.closePath();
+                context.fillStyle = 'white';
+                context.fill(triangle);
+
+                context.fillText(ship.name, ship.position[0] + 10, ship.position[1] + 10);
+            }
+        }
+    </script>
+</body>
+</html>

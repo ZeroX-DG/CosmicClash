@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"net/http"
 )
@@ -23,6 +22,10 @@ func serveWs(hub *Hub, game *Game, w http.ResponseWriter, r *http.Request) {
 	go client.readPump()
 }
 
+func serveHome(w http.ResponseWriter, r *http.Request) {
+	http.ServeFile(w, r, "spectator/index.html")
+}
+
 func main() {
 	hub := newHub()
 	go hub.run()
@@ -30,11 +33,11 @@ func main() {
 	game := newGame(hub)
 	go game.run()
 
-	// http.HandleFunc("/", serveHome)
+	http.HandleFunc("/", serveHome)
 	http.HandleFunc("/ws", func(w http.ResponseWriter, r *http.Request) {
 		serveWs(hub, game, w, r)
 	})
-	fmt.Println("Listenting on port 8080")
+	log.Println("Listenting on port 8080")
 	err := http.ListenAndServe(":8080", nil)
 	if err != nil {
 		log.Fatal("ListenAndServe: ", err)
