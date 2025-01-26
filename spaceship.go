@@ -54,6 +54,10 @@ func newShip(name string, initialPosition [2]float64) *Spaceship {
 	}
 }
 
+func (s *Spaceship) update() {
+	// TODO: handle ship update here
+}
+
 func (s *Spaceship) toJSON() []byte {
 	b, _ := json.Marshal(s)
 	return b

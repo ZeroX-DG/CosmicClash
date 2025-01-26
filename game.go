@@ -4,6 +4,12 @@ import (
 	"encoding/json"
 	"fmt"
 	"math/rand"
+	"time"
+)
+
+var (
+	gameTick      = 16 * time.Millisecond
+	broadcastTick = 1 * time.Second
 )
 
 type Game struct {
@@ -32,13 +38,28 @@ func newGame(hub *Hub) *Game {
 }
 
 func (g *Game) run() {
+	gameTicker := time.NewTicker(gameTick)
+	broadcastTicker := time.NewTicker(broadcastTick)
+	defer gameTicker.Stop()
+	defer broadcastTicker.Stop()
+
 	for {
 		select {
 		case message := <-g.messageQueue:
 			g.processMessage(message.client, message.message)
 		case client := <-g.hub.unregister:
 			delete(g.ships, client)
+		case <-gameTicker.C:
+			g.update()
+		case <-broadcastTicker.C:
+			g.hub.broadcast <- g.toJSON()
 		}
+	}
+}
+
+func (g *Game) update() {
+	for _, ship := range g.ships {
+		ship.update()
 	}
 }
 
@@ -87,6 +108,7 @@ func (g *Game) processMessage(client *Client, message []byte) {
 		// if register ship success then you should receive the game state & your ship info
 		g.hub.broadcast <- g.toJSON()
 		client.send <- ship.toJSON()
+		fmt.Println("New Ship: " + ship.Name)
 		return
 	}
 
