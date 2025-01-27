@@ -58,19 +58,22 @@
                 mapSize[1]
             );
 
-            context.translate(borderX, borderY);
-
             // Render ships
             for (const ship of ships) {
-                const triangle = new Path2D();
-                triangle.moveTo(ship.position[0] - 5, ship.position[1] + 5);
-                triangle.lineTo(ship.position[0], ship.position[1] - 10);
-                triangle.lineTo(ship.position[0] + 5, ship.position[1] + 5);
-                triangle.closePath();
+                context.translate(borderX + ship.position[0], borderY + ship.position[1]);
+
                 context.fillStyle = 'white';
+                context.fillText(ship.name, 10, 10);
+
+                context.rotate(ship.angle);
+                const triangle = new Path2D();
+                triangle.moveTo(-5, 5);
+                triangle.lineTo(0, 0 - 10);
+                triangle.lineTo(5, 5);
+                triangle.closePath();
                 context.fill(triangle);
 
-                context.fillText(ship.name, ship.position[0] + 10, ship.position[1] + 10);
+                context.resetTransform();
             }
         }
     </script>

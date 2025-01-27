@@ -105,9 +105,12 @@ func (g *Game) processMessage(client *Client, message []byte) {
 	}
 
 	command.Execute()
-	// let everyone know the game state has changed with the ship info
+	// let everyone know the game state has changed
 	g.hub.broadcast <- g.toJSON()
-	client.send <- ship.toJSON()
+
+	if ship != nil {
+		client.send <- ship.toJSON()
+	}
 }
 
 func (g *Game) chooseRandomPosition() [2]float64 {
