@@ -1,6 +1,9 @@
 package main
 
-import "encoding/json"
+import (
+	"encoding/json"
+	"log"
+)
 
 // Spaceship represents a spaceship and its properties.
 type Spaceship struct {
@@ -30,7 +33,7 @@ type StopCommand struct {
 // RotateCommand represents a rotate movement action.
 type RotateCommand struct {
 	Spaceship *Spaceship
-	angle     float64 // angle in radians, the rotation will be relative to the ship current angle
+	angle     float64 // angle in radians
 }
 
 // ShootCommand represents a shooting action.
@@ -40,7 +43,9 @@ type ShootCommand struct {
 
 // RegisterShipCommand can be used to register a ship
 type ReigsterShipCommand struct {
-	Name string `json:"name"`
+	Client *Client
+	Game   *Game
+	Name   string
 }
 
 func newShip(name string, initialPosition [2]float64) *Spaceship {
@@ -69,4 +74,17 @@ func (c *StopCommand) Execute() {
 
 func (c *ForwardCommand) Execute() {
 	c.Spaceship.isMovingForward = true
+}
+
+func (c *RotateCommand) Execute() {
+	c.Spaceship.Angle = c.angle
+}
+
+func (c *ReigsterShipCommand) Execute() {
+	ship := newShip(c.Name, c.Game.chooseRandomPosition())
+	c.Game.ships[c.Client] = ship
+
+	c.Game.hub.broadcast <- c.Game.toJSON()
+	c.Client.send <- ship.toJSON()
+	log.Println("Player Joined: " + c.Name)
 }

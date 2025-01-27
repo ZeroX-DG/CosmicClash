@@ -2,8 +2,10 @@ package main
 
 import (
 	"encoding/json"
+	"errors"
 	"log"
 	"math/rand"
+	"strconv"
 	"time"
 )
 
@@ -95,30 +97,13 @@ func (g *Game) toJSON() []byte {
 func (g *Game) processMessage(client *Client, message []byte) {
 	ship := g.ships[client]
 
-	// If client have no ship then the first command is always register ship
-	if ship == nil {
-		var registerCommand struct {
-			Command string
-			Name    string
-		}
-		err := json.Unmarshal(message, &registerCommand)
+	command, err := parseCommand(ship, g, client, message)
 
-		if err != nil {
-			g.hub.broadcast <- makeJSONError("Invalid command format. The only command available now is registerShip")
-			return
-		}
-
-		ship = newShip(registerCommand.Name, g.chooseRandomPosition())
-		g.ships[client] = ship
-
-		// if register ship success then you should receive the game state & your ship info
-		g.hub.broadcast <- g.toJSON()
-		client.send <- ship.toJSON()
-		log.Println("New Ship: " + ship.Name)
+	if err != nil {
+		client.send <- makeJSONError(err.Error())
 		return
 	}
 
-	command := parseCommand(ship, message)
 	command.Execute()
 	// let everyone know the game state has changed with the ship info
 	g.hub.broadcast <- g.toJSON()
@@ -139,9 +124,39 @@ func makeJSONError(err string) []byte {
 	return b
 }
 
-func parseCommand(ship *Spaceship, message []byte) Command {
-	// TODO: parse message JSON to command here
-	return &StopCommand{
-		Spaceship: ship,
+func parseCommand(ship *Spaceship, game *Game, client *Client, message []byte) (Command, error) {
+	command := map[string]string{}
+	err := json.Unmarshal([]byte(message), &command)
+
+	if err != nil {
+		return nil, err
 	}
+
+	if ship == nil && command["action"] == "registerShip" {
+		return &ReigsterShipCommand{
+			Name:   command["name"],
+			Game:   game,
+			Client: client,
+		}, nil
+	}
+
+	if command["action"] == "forward" {
+		return &ForwardCommand{Spaceship: ship}, nil
+	}
+
+	if command["action"] == "stop" {
+		return &StopCommand{Spaceship: ship}, nil
+	}
+
+	if command["action"] == "rotate" {
+		angle, parseErr := strconv.ParseFloat(command["angle"], 64)
+
+		if parseErr != nil {
+			return nil, errors.New("Invalid angle value: " + command["angle"])
+		}
+
+		return &RotateCommand{Spaceship: ship, angle: angle}, nil
+	}
+
+	return nil, errors.New("Invalid command: " + command["action"])
 }
