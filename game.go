@@ -11,7 +11,7 @@ import (
 
 var (
 	gameTick      = 16 * time.Millisecond
-	broadcastTick = 1 * time.Second
+	broadcastTick = 20 * time.Millisecond
 )
 
 type Game struct {
